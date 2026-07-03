@@ -70,13 +70,13 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_PLAN_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
       - name: Init
         working-directory: infra/envs/prod
-        run: terraform init -backend-config="bucket=${{ vars.STATE_BUCKET_NAME }}" -backend-config="region=${{ vars.AWS_REGION }}"
+        run: terraform init -backend-config="bucket=${{ vars.STATE_BUCKET_NAME }}" -backend-config="region=${{ vars.AWS_REGION || 'us-east-1' }}"
       - name: Validate
         working-directory: infra/envs/prod
         run: terraform validate
       - name: Plan
         working-directory: infra/envs/prod
-        run: terraform plan -var="region=${{ vars.AWS_REGION }}" -var="site_bucket_name=${{ vars.SITE_BUCKET_NAME }}"
+        run: terraform plan -var="region=${{ vars.AWS_REGION || 'us-east-1' }}" -var="site_bucket_name=${{ vars.SITE_BUCKET_NAME }}"
