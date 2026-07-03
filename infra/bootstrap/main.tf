@@ -14,7 +14,7 @@ provider "aws" {
 
 variable "region" {
   type    = string
-  default = "us-east-1"
+  default = "ap-southeast-1"
 }
 
 variable "state_bucket_name" {

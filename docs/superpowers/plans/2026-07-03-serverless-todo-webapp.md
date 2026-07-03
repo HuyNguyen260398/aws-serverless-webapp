@@ -797,7 +797,7 @@ provider "aws" {
 
 variable "region" {
   type    = string
-  default = "us-east-1"
+  default = "ap-southeast-1"
 }
 
 variable "state_bucket_name" {
@@ -1127,7 +1127,7 @@ git commit -m "feat(infra): add cognito auth module"
 
 **Interfaces:**
 - Consumes: `var.name_prefix`, `var.region`, `var.user_pool_arn`, `var.lambda_invoke_arn`, `var.lambda_function_name`.
-- Produces: `output.api_id`, `output.stage_name` (= `api`), `output.invoke_domain` (host portion, e.g. `abc123.execute-api.us-east-1.amazonaws.com`) for the CloudFront origin.
+- Produces: `output.api_id`, `output.stage_name` (= `api`), `output.invoke_domain` (host portion, e.g. `abc123.execute-api.ap-southeast-1.amazonaws.com`) for the CloudFront origin.
 - Design: two resources — `/todos` and `/todos/{id}` — each with an `ANY` method (COGNITO_USER_POOLS authorizer) and an `AWS_PROXY` integration to the single Lambda. Stage name is **`api`** so `/api/todos` maps cleanly through CloudFront.
 
 - [x] **Step 1: Write the module**
@@ -1495,7 +1495,7 @@ provider "aws" {
 ```hcl
 variable "region" {
   type    = string
-  default = "us-east-1"
+  default = "ap-southeast-1"
 }
 
 variable "name_prefix" {
@@ -1511,7 +1511,7 @@ variable "site_bucket_name" {
 
 `infra/envs/prod/terraform.tfvars.example`:
 ```hcl
-region           = "us-east-1"
+region           = "ap-southeast-1"
 name_prefix      = "todo-prod"
 site_bucket_name = "todo-prod-site-CHANGE-ME"
 ```
@@ -1678,7 +1678,7 @@ module.exports = nextConfig;
 - [x] **Step 4: Create `frontend/.env.example`**
 
 ```
-NEXT_PUBLIC_USER_POOL_ID=us-east-1_xxxxxxxxx
+NEXT_PUBLIC_USER_POOL_ID=ap-southeast-1_xxxxxxxxx
 NEXT_PUBLIC_USER_POOL_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
@@ -1938,7 +1938,7 @@ export default function Page() {
 
 - [x] **Step 2: Verify the static export builds**
 
-Run: `cd frontend && NEXT_PUBLIC_USER_POOL_ID=us-east-1_x NEXT_PUBLIC_USER_POOL_CLIENT_ID=x pnpm run build`
+Run: `cd frontend && NEXT_PUBLIC_USER_POOL_ID=ap-southeast-1_x NEXT_PUBLIC_USER_POOL_CLIENT_ID=x pnpm run build`
 Expected: build succeeds and writes `frontend/out/index.html`.
 
 - [x] **Step 3: Commit**
@@ -2215,7 +2215,7 @@ then two roles whose trust policy allows this repo:
 Set these in **Settings → Secrets and variables → Actions**:
 
 Variables:
-- `AWS_REGION` (e.g. `us-east-1`)
+- `AWS_REGION` (e.g. `ap-southeast-1`)
 - `STATE_BUCKET_NAME` (from bootstrap)
 - `SITE_BUCKET_NAME` (globally-unique bucket for the site)
 
