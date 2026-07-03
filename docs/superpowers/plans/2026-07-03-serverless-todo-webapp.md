@@ -6,7 +6,7 @@
 
 **Architecture:** A Next.js static-export SPA is hosted on a private S3 bucket and served through CloudFront. CloudFront also fronts the REST API via an `/api/*` behavior, so the SPA is same-origin with the API and needs no CORS. A single Lambda function behind API Gateway (guarded by a Cognito authorizer) performs CRUD on a single DynamoDB table, deriving the owning `userId` from the validated JWT.
 
-**Tech Stack:** TypeScript (Node.js 20) for the Lambda and the Next.js frontend; AWS SDK v3; Jest + `aws-sdk-client-mock` for backend tests; AWS Amplify (`@aws-amplify/ui-react`) for auth; Terraform (AWS provider) for IaC; GitHub Actions with OIDC for CI/CD.
+**Tech Stack:** TypeScript (Node.js 20) for the Lambda and the Next.js frontend; **pnpm** for Node package management; AWS SDK v3; Jest + `aws-sdk-client-mock` for backend tests; AWS Amplify (`@aws-amplify/ui-react`) for auth; Terraform (AWS provider) for IaC; GitHub Actions with OIDC for CI/CD.
 
 **Source of truth:** `docs/superpowers/specs/2026-07-03-serverless-todo-webapp-design.md`.
 
@@ -19,7 +19,7 @@
 - **`userId` is always `event.requestContext.authorizer.claims.sub`** — never from body/query. This is the ownership invariant.
 - **Single Lambda** (`nodejs20.x`, handler `index.handler`) with internal routing; **single DynamoDB table** keyed `userId` (PK, HASH) + `todoId` (SK, RANGE).
 - **Single environment (prod).** GitHub Actions authenticates to AWS via **OIDC** — no static AWS keys.
-- **Node 20** everywhere; `.nvmrc` pins it. Terraform `>= 1.6`, AWS provider `~> 5.0`.
+- **Node 20** everywhere; `.nvmrc` pins it. **pnpm** is the package manager (lockfile `pnpm-lock.yaml`; CI installs with `pnpm install --frozen-lockfile`). Terraform `>= 1.6`, AWS provider `~> 5.0`.
 
 ## File Structure
 
@@ -75,7 +75,7 @@ README.md               # bootstrap + OIDC setup instructions
 - Create: `.nvmrc`, `.gitignore`, `backend/package.json`, `backend/tsconfig.json`, `backend/jest.config.js`
 
 **Interfaces:**
-- Produces: an installable backend package with `npm test`, `npm run build`, `npm run lint` scripts. Build emits `backend/dist/index.js` (CJS) exporting `handler`.
+- Produces: an installable backend package with `pnpm test`, `pnpm run build`, `pnpm run lint` scripts. Build emits `backend/dist/index.js` (CJS) exporting `handler`.
 
 - [ ] **Step 1: Create `.nvmrc`**
 
@@ -108,6 +108,7 @@ coverage/
   "name": "todo-backend",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "build": "esbuild src/handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.js",
     "test": "jest",
@@ -167,13 +168,13 @@ module.exports = {
 
 - [ ] **Step 6: Install and verify tooling**
 
-Run: `cd backend && npm install`
+Run: `cd backend && pnpm install`
 Expected: installs without error; `node_modules` present.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add .nvmrc .gitignore backend/package.json backend/tsconfig.json backend/jest.config.js backend/package-lock.json
+git add .nvmrc .gitignore backend/package.json backend/tsconfig.json backend/jest.config.js backend/pnpm-lock.yaml
 git commit -m "chore: scaffold backend package"
 ```
 
@@ -247,7 +248,7 @@ describe('parseUpdateInput', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd backend && npx jest test/types.test.ts`
+Run: `cd backend && pnpm exec jest test/types.test.ts`
 Expected: FAIL — cannot find module `../src/types`.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -324,7 +325,7 @@ export function parseUpdateInput(body: unknown): UpdateTodoInput {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd backend && npx jest test/types.test.ts`
+Run: `cd backend && pnpm exec jest test/types.test.ts`
 Expected: PASS (9 tests).
 
 - [ ] **Step 5: Commit**
@@ -430,7 +431,7 @@ describe('TodoRepository', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd backend && npx jest test/repository.test.ts`
+Run: `cd backend && pnpm exec jest test/repository.test.ts`
 Expected: FAIL — cannot find module `../src/repository`.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -544,7 +545,7 @@ export class TodoRepository {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd backend && npx jest test/repository.test.ts`
+Run: `cd backend && pnpm exec jest test/repository.test.ts`
 Expected: PASS (7 tests).
 
 - [ ] **Step 5: Commit**
@@ -677,7 +678,7 @@ describe('route', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd backend && npx jest test/router.test.ts`
+Run: `cd backend && pnpm exec jest test/router.test.ts`
 Expected: FAIL — `route` not exported from `../src/handler`.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -747,12 +748,12 @@ export const handler: APIGatewayProxyHandler = (event) => route(event, repo);
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd backend && npx jest`
+Run: `cd backend && pnpm exec jest`
 Expected: PASS (all suites: types, repository, router).
 
 - [ ] **Step 5: Verify the production bundle builds**
 
-Run: `cd backend && npm run build && node -e "require('./dist/index.js').handler || process.exit(1)"`
+Run: `cd backend && pnpm run build && node -e "require('./dist/index.js').handler || process.exit(1)"`
 Expected: exits 0; `dist/index.js` exists and exports `handler`.
 
 - [ ] **Step 6: Commit**
@@ -1584,7 +1585,7 @@ output "user_pool_client_id" {
 
 Run:
 ```bash
-cd backend && npm run build && cd ../infra/envs/prod && terraform fmt && terraform init -backend=false && terraform validate
+cd backend && pnpm run build && cd ../infra/envs/prod && terraform fmt && terraform init -backend=false && terraform validate
 ```
 Expected: `Success! The configuration is valid.`
 
@@ -1614,6 +1615,7 @@ git commit -m "feat(infra): wire prod environment with remote state"
   "name": "todo-frontend",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -1719,13 +1721,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
 - [ ] **Step 7: Install**
 
-Run: `cd frontend && npm install`
+Run: `cd frontend && pnpm install`
 Expected: installs cleanly.
 
 - [ ] **Step 8: Commit**
 
 ```bash
-git add frontend/package.json frontend/next.config.js frontend/tsconfig.json frontend/.env.example frontend/src/lib/amplify.ts frontend/src/app/layout.tsx frontend/package-lock.json
+git add frontend/package.json frontend/next.config.js frontend/tsconfig.json frontend/.env.example frontend/src/lib/amplify.ts frontend/src/app/layout.tsx frontend/pnpm-lock.yaml
 git commit -m "feat(frontend): scaffold next.js static-export app with amplify config"
 ```
 
@@ -1815,7 +1817,7 @@ export async function deleteTodo(id: string): Promise<void> {
 
 - [ ] **Step 2: Type-check**
 
-Run: `cd frontend && npx tsc --noEmit`
+Run: `cd frontend && pnpm exec tsc --noEmit`
 Expected: no errors.
 
 - [ ] **Step 3: Commit**
@@ -1936,7 +1938,7 @@ export default function Page() {
 
 - [ ] **Step 2: Verify the static export builds**
 
-Run: `cd frontend && NEXT_PUBLIC_USER_POOL_ID=us-east-1_x NEXT_PUBLIC_USER_POOL_CLIENT_ID=x npm run build`
+Run: `cd frontend && NEXT_PUBLIC_USER_POOL_ID=us-east-1_x NEXT_PUBLIC_USER_POOL_CLIENT_ID=x pnpm run build`
 Expected: build succeeds and writes `frontend/out/index.html`.
 
 - [ ] **Step 3: Commit**
@@ -1981,15 +1983,18 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
-      - run: npm ci
-      - run: npm run lint
-      - run: npm test
-      - run: npm run build
+          cache: pnpm
+          cache-dependency-path: backend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+      - run: pnpm test
+      - run: pnpm run build
 
   frontend:
     runs-on: ubuntu-latest
@@ -1998,14 +2003,17 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+      - run: pnpm run build
         env:
           NEXT_PUBLIC_USER_POOL_ID: placeholder
           NEXT_PUBLIC_USER_POOL_CLIENT_ID: placeholder
@@ -2014,11 +2022,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
       - name: Build lambda artifact (needed for archive_file)
-        run: cd backend && npm ci && npm run build
+        run: cd backend && pnpm install --frozen-lockfile && pnpm run build
       - uses: hashicorp/setup-terraform@v3
       - name: Format check
         run: terraform fmt -check -recursive infra
@@ -2084,6 +2095,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -2098,7 +2112,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Build lambda
-        run: cd backend && npm ci && npm run build
+        run: cd backend && pnpm install --frozen-lockfile && pnpm run build
 
       - name: Terraform init
         working-directory: infra/envs/prod
@@ -2123,8 +2137,8 @@ jobs:
           NEXT_PUBLIC_USER_POOL_ID: ${{ steps.tf.outputs.pool_id }}
           NEXT_PUBLIC_USER_POOL_CLIENT_ID: ${{ steps.tf.outputs.client_id }}
         run: |
-          npm ci
-          npm run build
+          pnpm install --frozen-lockfile
+          pnpm run build
 
       - name: Sync to S3
         run: aws s3 sync frontend/out "s3://${{ steps.tf.outputs.bucket }}" --delete
@@ -2169,8 +2183,8 @@ See `docs/superpowers/specs/2026-07-03-serverless-todo-webapp-design.md` for the
 
 ## Layout
 
-- `backend/` — Lambda (TypeScript). `npm test`, `npm run build`.
-- `frontend/` — Next.js static export. `npm run build` → `out/`.
+- `backend/` — Lambda (TypeScript). `pnpm test`, `pnpm run build`.
+- `frontend/` — Next.js static export. `pnpm run build` → `out/`.
 - `infra/` — Terraform (`bootstrap`, `modules/*`, `envs/prod`).
 - `.github/workflows/` — `ci.yml` (PRs), `deploy.yml` (main).
 
@@ -2215,10 +2229,14 @@ Push to `main`. `deploy.yml` applies infra, builds and uploads the frontend with
 live Cognito IDs, and invalidates CloudFront. The app is served at the CloudFront
 distribution domain (`terraform output distribution_domain`).
 
+## Prerequisites
+
+- Node 20 (`.nvmrc`) and **pnpm 9** (`npm i -g pnpm` or via Corepack: `corepack enable`).
+
 ## Local development
 
-- Backend: `cd backend && npm install && npm test`
-- Frontend: `cd frontend && npm install && npm run dev` (set `NEXT_PUBLIC_*` in `.env.local`;
+- Backend: `cd backend && pnpm install && pnpm test`
+- Frontend: `cd frontend && pnpm install && pnpm run dev` (set `NEXT_PUBLIC_*` in `.env.local`;
   API calls to `/api/*` require the deployed backend or a proxy).
 ````
 
