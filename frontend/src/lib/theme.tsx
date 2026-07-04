@@ -20,23 +20,28 @@ function getInitialColorMode(): ColorMode {
 }
 
 export function ColorModeProvider({ children }: { children: ReactNode }) {
-  const [colorMode, setColorMode] = useState<ColorMode>('light');
+  // Starts unresolved (null) so the DOM/localStorage-sync effect below never
+  // writes a placeholder value before the real initial preference is read.
+  // Without this, React 18 Strict Mode's double-invoked effects in `next dev`
+  // can permanently overwrite the real preference with the placeholder.
+  const [colorMode, setColorMode] = useState<ColorMode | null>(null);
 
   useEffect(() => {
     setColorMode(getInitialColorMode());
   }, []);
 
   useEffect(() => {
+    if (colorMode === null) return;
     document.documentElement.classList.toggle('dark', colorMode === 'dark');
     window.localStorage.setItem(STORAGE_KEY, colorMode);
   }, [colorMode]);
 
   function toggleColorMode() {
-    setColorMode((prev) => (prev === 'light' ? 'dark' : 'light'));
+    setColorMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
   }
 
   return (
-    <ColorModeContext.Provider value={{ colorMode, toggleColorMode }}>
+    <ColorModeContext.Provider value={{ colorMode: colorMode ?? 'light', toggleColorMode }}>
       {children}
     </ColorModeContext.Provider>
   );
