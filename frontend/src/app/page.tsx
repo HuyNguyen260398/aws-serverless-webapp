@@ -11,6 +11,7 @@ import { amplifyTheme } from '@/lib/amplifyTheme';
 import { ColorModeProvider, useColorMode } from '@/lib/theme';
 import { Header } from '@/components/Header';
 import { TodoForm } from '@/components/TodoForm';
+import { TodoList } from '@/components/TodoList';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import {
@@ -63,6 +64,11 @@ function TodoApp() {
     await refresh();
   }
 
+  async function onEdit(t: Todo, title: string) {
+    await updateTodo(t.todoId, { title });
+    await refresh();
+  }
+
   async function onDelete(t: Todo) {
     await deleteTodo(t.todoId);
     await refresh();
@@ -88,26 +94,7 @@ function TodoApp() {
       ) : todos.length === 0 ? (
         <EmptyState hasAnyTodos={false} />
       ) : (
-        <ul className="mt-4">
-          {todos.map((t) => (
-            <li
-              key={t.todoId}
-              className="flex items-center gap-3 border-b border-gray-100 py-3 dark:border-gray-800"
-            >
-              <input type="checkbox" checked={t.completed} onChange={() => onToggle(t)} />
-              <span
-                className={`flex-1 text-gray-900 dark:text-gray-100 ${
-                  t.completed ? 'text-gray-400 line-through dark:text-gray-500' : ''
-                }`}
-              >
-                {t.title}
-              </span>
-              <button onClick={() => onDelete(t)} className="text-gray-400 hover:text-red-600">
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
+        <TodoList todos={todos} onToggle={onToggle} onEdit={onEdit} onDelete={onDelete} />
       )}
     </main>
   );
