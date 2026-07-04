@@ -29,8 +29,8 @@ Mermaid sequence and CI/CD workflow diagrams.
 
 ```
                         ┌────────────── Amazon CloudFront ──────────────┐
-                        │  default behavior  →  S3 (static Next.js)      │
-  Browser (SPA) ───────▶│  /api/* behavior   →  API Gateway (REST)       │
+                        │  default behavior  →  S3 (static Next.js)     │
+  Browser (SPA) ───────▶│  /api/* behavior   →  API Gateway (REST)      │
         │               └───────────────────────────────────────────────┘
         │                                          │
         └── auth (JWT) ── Amazon Cognito           ▼
