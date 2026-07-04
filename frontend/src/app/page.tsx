@@ -42,47 +42,86 @@ function TodoApp() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
 
-  async function refresh() {
-    try {
-      setTodos(await listTodos());
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  }
-
   useEffect(() => {
     void (async () => {
-      await refresh();
-      setLoading(false);
+      try {
+        setTodos(await listTodos());
+      } catch (e) {
+        setError((e as Error).message);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
   async function onAdd(title: string) {
-    await createTodo(title);
-    await refresh();
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const now = new Date().toISOString();
+    const optimistic: Todo = {
+      userId: user?.userId ?? '',
+      todoId: tempId,
+      title,
+      completed: false,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setTodos((prev) => [...prev, optimistic]);
+    try {
+      const created = await createTodo(title);
+      setTodos((prev) => prev.map((t) => (t.todoId === tempId ? created : t)));
+    } catch (e) {
+      setTodos((prev) => prev.filter((t) => t.todoId !== tempId));
+      setError((e as Error).message);
+    }
   }
 
   async function onToggle(t: Todo) {
-    await updateTodo(t.todoId, { completed: !t.completed });
-    await refresh();
+    const next = !t.completed;
+    setTodos((prev) => prev.map((x) => (x.todoId === t.todoId ? { ...x, completed: next } : x)));
+    try {
+      await updateTodo(t.todoId, { completed: next });
+    } catch (e) {
+      setTodos((prev) =>
+        prev.map((x) => (x.todoId === t.todoId ? { ...x, completed: !next } : x)),
+      );
+      setError((e as Error).message);
+    }
   }
 
   async function onEdit(t: Todo, title: string) {
-    await updateTodo(t.todoId, { title });
-    await refresh();
+    const previousTitle = t.title;
+    setTodos((prev) => prev.map((x) => (x.todoId === t.todoId ? { ...x, title } : x)));
+    try {
+      await updateTodo(t.todoId, { title });
+    } catch (e) {
+      setTodos((prev) =>
+        prev.map((x) => (x.todoId === t.todoId ? { ...x, title: previousTitle } : x)),
+      );
+      setError((e as Error).message);
+    }
   }
 
   async function onDelete(t: Todo) {
-    await deleteTodo(t.todoId);
-    await refresh();
+    setTodos((prev) => prev.filter((x) => x.todoId !== t.todoId));
+    try {
+      await deleteTodo(t.todoId);
+    } catch (e) {
+      setTodos((prev) => [...prev, t]);
+      setError((e as Error).message);
+    }
   }
 
   async function onClearCompleted() {
     const completed = todos.filter((t) => t.completed);
     if (completed.length === 0) return;
     if (!window.confirm(`Delete ${completed.length} completed todo(s)?`)) return;
-    await Promise.all(completed.map((t) => deleteTodo(t.todoId)));
-    await refresh();
+    setTodos((prev) => prev.filter((t) => !t.completed));
+    try {
+      await Promise.all(completed.map((t) => deleteTodo(t.todoId)));
+    } catch (e) {
+      setTodos((prev) => [...prev, ...completed]);
+      setError((e as Error).message);
+    }
   }
 
   const activeCount = todos.filter((t) => !t.completed).length;
