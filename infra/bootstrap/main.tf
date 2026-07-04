@@ -13,8 +13,8 @@ provider "aws" {
 }
 
 variable "region" {
-  type    = string
-  default = "ap-southeast-1"
+  type        = string
+  description = "AWS region to deploy the Terraform state bucket and lock table into."
 }
 
 variable "state_bucket_name" {
