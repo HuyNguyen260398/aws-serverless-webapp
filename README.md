@@ -1,4 +1,4 @@
-# Serverless Todo Web App
+# AWS Serverless Web App Reference Architecture
 
 [![CI](https://github.com/HuyNguyen260398/aws-serverless-webapp/actions/workflows/ci.yml/badge.svg)](https://github.com/HuyNguyen260398/aws-serverless-webapp/actions/workflows/ci.yml)
 [![Deploy](https://github.com/HuyNguyen260398/aws-serverless-webapp/actions/workflows/deploy.yml/badge.svg)](https://github.com/HuyNguyen260398/aws-serverless-webapp/actions/workflows/deploy.yml)
@@ -7,10 +7,13 @@
 [![Node.js](https://img.shields.io/badge/node-20.x-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![AWS](https://img.shields.io/badge/AWS-Serverless-FF9900?logo=amazonaws&logoColor=white)](https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/web-application.html)
 
-A per-user todo application built entirely on AWS serverless services, following the
+A reference implementation of the
 [AWS Well-Architected Serverless Applications Lens — *Web application*](https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/web-application.html)
-reference architecture, with a Next.js frontend, Terraform infrastructure-as-code, and
-GitHub Actions CI/CD.
+architecture — Cognito → CloudFront → S3 → API Gateway → Lambda → DynamoDB — built
+end to end with a Next.js frontend, Terraform infrastructure-as-code, and GitHub
+Actions CI/CD. A small per-user todo app is included as the working sample that
+exercises every layer of the stack; the focus of this repo is the architecture and
+how to build/deploy it, not the todo app itself.
 
 > [!NOTE]
 > This repo is meant to be **forked and deployed under your own AWS account and
