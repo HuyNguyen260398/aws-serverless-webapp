@@ -11,7 +11,9 @@ import { amplifyTheme } from '@/lib/amplifyTheme';
 import { ColorModeProvider, useColorMode } from '@/lib/theme';
 import { Header } from '@/components/Header';
 import { TodoForm } from '@/components/TodoForm';
+import { FilterTabs, type Filter } from '@/components/FilterTabs';
 import { TodoList } from '@/components/TodoList';
+import { ClearCompletedButton } from '@/components/ClearCompletedButton';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import {
@@ -38,6 +40,7 @@ function TodoApp() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>('all');
 
   async function refresh() {
     try {
@@ -74,7 +77,21 @@ function TodoApp() {
     await refresh();
   }
 
-  const completedCount = todos.filter((t) => t.completed).length;
+  async function onClearCompleted() {
+    const completed = todos.filter((t) => t.completed);
+    if (completed.length === 0) return;
+    if (!window.confirm(`Delete ${completed.length} completed todo(s)?`)) return;
+    await Promise.all(completed.map((t) => deleteTodo(t.todoId)));
+    await refresh();
+  }
+
+  const activeCount = todos.filter((t) => !t.completed).length;
+  const completedCount = todos.length - activeCount;
+  const visibleTodos = todos.filter((t) => {
+    if (filter === 'active') return !t.completed;
+    if (filter === 'completed') return t.completed;
+    return true;
+  });
 
   return (
     <main className="mx-auto min-h-screen max-w-lg px-4 py-8">
@@ -89,12 +106,26 @@ function TodoApp() {
 
       <TodoForm onAdd={onAdd} />
 
+      {todos.length > 0 && (
+        <FilterTabs
+          filter={filter}
+          onChange={setFilter}
+          allCount={todos.length}
+          activeCount={activeCount}
+          completedCount={completedCount}
+        />
+      )}
+
       {loading ? (
         <p className="mt-8 text-center text-gray-400 dark:text-gray-500">Loading…</p>
-      ) : todos.length === 0 ? (
-        <EmptyState hasAnyTodos={false} />
+      ) : visibleTodos.length === 0 ? (
+        <EmptyState hasAnyTodos={todos.length > 0} />
       ) : (
-        <TodoList todos={todos} onToggle={onToggle} onEdit={onEdit} onDelete={onDelete} />
+        <TodoList todos={visibleTodos} onToggle={onToggle} onEdit={onEdit} onDelete={onDelete} />
+      )}
+
+      {completedCount > 0 && (
+        <ClearCompletedButton count={completedCount} onClear={onClearCompleted} />
       )}
     </main>
   );
