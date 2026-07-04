@@ -13,3 +13,4 @@ crash.log
 .env
 .env.local
 coverage/
+docs/deployment-info.md
