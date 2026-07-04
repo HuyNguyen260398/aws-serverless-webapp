@@ -1,4 +1,4 @@
-# AWS Serverless Web App Reference Architecture
+# AWS Serverless Web App
 
 [![CI](https://github.com/HuyNguyen260398/aws-serverless-webapp/actions/workflows/ci.yml/badge.svg)](https://github.com/HuyNguyen260398/aws-serverless-webapp/actions/workflows/ci.yml)
 [![Deploy](https://github.com/HuyNguyen260398/aws-serverless-webapp/actions/workflows/deploy.yml/badge.svg)](https://github.com/HuyNguyen260398/aws-serverless-webapp/actions/workflows/deploy.yml)
@@ -61,21 +61,9 @@ The app maps one-to-one to the six components of the AWS reference architecture.
 See [`docs/architecture.md`](docs/architecture.md) for a full breakdown plus
 Mermaid sequence and CI/CD workflow diagrams.
 
-```
-                        ┌────────────── Amazon CloudFront ──────────────┐
-                        │  default behavior  →  S3 (static Next.js)     │
-  Browser (SPA) ───────▶│  /api/* behavior   →  API Gateway (REST)      │
-        │               └───────────────────────────────────────────────┘
-        │                                          │
-        └── auth (JWT) ── Amazon Cognito           ▼
-                          User Pool          API Gateway
-                              ▲              (Cognito authorizer)
-                              └── validates ──────│
-                                                  ▼
-                                            AWS Lambda (CRUD)
-                                                  ▼
-                                            Amazon DynamoDB
-```
+![AWS Well-Architected reference architecture for a web application: CloudFront in front of an S3-hosted static site and an API Gateway REST API secured by a Cognito authorizer, invoking a Lambda function backed by DynamoDB](https://docs.aws.amazon.com/images/wellarchitected/latest/serverless-applications-lens/images/reference-architecture-for-web-application.png)
+
+*Source: [AWS Well-Architected Serverless Applications Lens — Web application](https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/web-application.html)*
 
 | Component | Service | Role |
 |-----------|---------|------|
