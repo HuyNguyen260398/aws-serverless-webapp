@@ -6,9 +6,8 @@ reference architecture, with a Next.js frontend, Terraform infrastructure-as-cod
 GitHub Actions CI/CD.
 
 > [!NOTE]
-> This repository is currently in the **design & planning phase**. The architecture,
-> data model, and step-by-step build plan are fully specified under [`docs/`](docs/);
-> application and infrastructure code is added by executing the implementation plan.
+> The application, infrastructure, and CI/CD code are implemented. The architecture,
+> data model, and step-by-step build plan are specified under [`docs/`](docs/).
 
 ## Why serverless
 
@@ -80,20 +79,47 @@ frontend is **same-origin** with the API — no CORS required.
 > Requires **Node.js 20** (see `.nvmrc`), **pnpm 9**, **Terraform ≥ 1.6**, and AWS
 > credentials with permission to create the resources above.
 
-The full, task-by-task build and deployment instructions live in the plan and spec:
+The full design and task-by-task plan live under [`docs/`](docs/):
 
 - **Design:** [`docs/superpowers/specs/2026-07-03-serverless-todo-webapp-design.md`](docs/superpowers/specs/2026-07-03-serverless-todo-webapp-design.md)
 - **Implementation plan:** [`docs/superpowers/plans/2026-07-03-serverless-todo-webapp.md`](docs/superpowers/plans/2026-07-03-serverless-todo-webapp.md)
 
-At a high level, deployment is:
+### Local development
 
-1. **Bootstrap remote state** — apply `infra/bootstrap` once to create the Terraform
-   state bucket and lock table.
-2. **Configure GitHub OIDC** — create the AWS OIDC provider and CI/deploy roles, then
-   set the repository variables and secrets.
-3. **Deploy** — push to `main`; the pipeline applies infrastructure, builds and uploads
-   the frontend, and invalidates the CloudFront cache. The app is served at the
-   CloudFront distribution domain.
+- **Backend:** `cd backend && pnpm install && pnpm test` (build the Lambda bundle with `pnpm run build`).
+- **Frontend:** `cd frontend && pnpm install && pnpm run dev`. Set `NEXT_PUBLIC_USER_POOL_ID`
+  and `NEXT_PUBLIC_USER_POOL_CLIENT_ID` in `.env.local` (see `.env.example`); calls to
+  `/api/*` require the deployed backend (or a proxy) since the app is same-origin with the API.
+
+### One-time setup
+
+These manual steps bootstrap state and wire up OIDC before the pipeline can run.
+
+**1. Bootstrap remote state** — creates the Terraform state bucket and lock table:
+
+```bash
+cd infra/bootstrap
+terraform init
+terraform apply -var="state_bucket_name=<globally-unique-name>"
+```
+
+Note the `state_bucket_name` and `lock_table_name` outputs.
+
+**2. GitHub OIDC provider + roles** — create an IAM OIDC identity provider for
+`token.actions.githubusercontent.com`, then two roles whose trust policy allows this repo:
+
+- **Plan role** (used by `ci.yml`): read-only + `terraform plan` permissions.
+- **Deploy role** (used by `deploy.yml`): permissions to manage DynamoDB, Lambda, IAM,
+  Cognito, API Gateway, S3, and CloudFront, plus read/write on the state bucket and lock table.
+
+**3. Repository configuration** — in **Settings → Secrets and variables → Actions**:
+
+- Variables: `AWS_REGION`, `STATE_BUCKET_NAME` (from bootstrap), `SITE_BUCKET_NAME` (globally-unique bucket for the site).
+- Secrets: `AWS_PLAN_ROLE_ARN`, `AWS_DEPLOY_ROLE_ARN`.
+
+**4. First deploy** — push to `main`. `deploy.yml` applies infrastructure, builds and
+uploads the frontend with the live Cognito IDs, and invalidates the CloudFront cache.
+The app is served at the CloudFront distribution domain (`terraform output distribution_domain`).
 
 ## Documentation
 

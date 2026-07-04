@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+*.zip
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+crash.log
+.env
+.env.local
+coverage/

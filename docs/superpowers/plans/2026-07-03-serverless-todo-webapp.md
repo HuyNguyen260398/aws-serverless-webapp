@@ -77,13 +77,13 @@ README.md               # bootstrap + OIDC setup instructions
 **Interfaces:**
 - Produces: an installable backend package with `pnpm test`, `pnpm run build`, `pnpm run lint` scripts. Build emits `backend/dist/index.js` (CJS) exporting `handler`.
 
-- [ ] **Step 1: Create `.nvmrc`**
+- [x] **Step 1: Create `.nvmrc`**
 
 ```
 20
 ```
 
-- [ ] **Step 2: Create `.gitignore`**
+- [x] **Step 2: Create `.gitignore`**
 
 ```gitignore
 node_modules/
@@ -101,7 +101,7 @@ crash.log
 coverage/
 ```
 
-- [ ] **Step 3: Create `backend/package.json`**
+- [x] **Step 3: Create `backend/package.json`**
 
 ```json
 {
@@ -135,7 +135,7 @@ coverage/
 }
 ```
 
-- [ ] **Step 4: Create `backend/tsconfig.json`**
+- [x] **Step 4: Create `backend/tsconfig.json`**
 
 ```json
 {
@@ -155,7 +155,7 @@ coverage/
 }
 ```
 
-- [ ] **Step 5: Create `backend/jest.config.js`**
+- [x] **Step 5: Create `backend/jest.config.js`**
 
 ```js
 /** @type {import('jest').Config} */
@@ -166,12 +166,12 @@ module.exports = {
 };
 ```
 
-- [ ] **Step 6: Install and verify tooling**
+- [x] **Step 6: Install and verify tooling**
 
 Run: `cd backend && pnpm install`
 Expected: installs without error; `node_modules` present.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add .nvmrc .gitignore backend/package.json backend/tsconfig.json backend/jest.config.js backend/pnpm-lock.yaml
@@ -195,7 +195,7 @@ git commit -m "chore: scaffold backend package"
   - `function parseCreateInput(body: unknown): CreateTodoInput` — throws `ValidationError`
   - `function parseUpdateInput(body: unknown): UpdateTodoInput` — throws `ValidationError`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `backend/test/types.test.ts`:
 ```ts
@@ -246,12 +246,12 @@ describe('parseUpdateInput', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd backend && pnpm exec jest test/types.test.ts`
 Expected: FAIL — cannot find module `../src/types`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 `backend/src/types.ts`:
 ```ts
@@ -323,12 +323,12 @@ export function parseUpdateInput(body: unknown): UpdateTodoInput {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd backend && pnpm exec jest test/types.test.ts`
 Expected: PASS (9 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/types.ts backend/test/types.test.ts
@@ -353,7 +353,7 @@ git commit -m "feat: add todo types and input validation"
   - `update(userId: string, todoId: string, input: UpdateTodoInput): Promise<Todo | null>` (null if item absent)
   - `delete(userId: string, todoId: string): Promise<boolean>` (false if item absent)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `backend/test/repository.test.ts`:
 ```ts
@@ -429,12 +429,12 @@ describe('TodoRepository', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd backend && pnpm exec jest test/repository.test.ts`
 Expected: FAIL — cannot find module `../src/repository`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 `backend/src/repository.ts`:
 ```ts
@@ -543,12 +543,12 @@ export class TodoRepository {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd backend && pnpm exec jest test/repository.test.ts`
 Expected: PASS (7 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/repository.ts backend/test/repository.test.ts
@@ -570,7 +570,7 @@ git commit -m "feat: add TodoRepository over DynamoDB"
   - `const handler: APIGatewayProxyHandler` — production entry that builds a real repository from `process.env.TABLE_NAME` and delegates to `route`.
 - Behavior: `userId = event.requestContext.authorizer.claims.sub`; `401` if absent. Routes on `httpMethod` × presence of `event.pathParameters.id`. Returns `400` for `ValidationError`/bad JSON, `404` for missing items, `500` otherwise. `204` responses have an empty body. No CORS headers (same-origin via CloudFront).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `backend/test/router.test.ts`:
 ```ts
@@ -676,12 +676,12 @@ describe('route', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd backend && pnpm exec jest test/router.test.ts`
 Expected: FAIL — `route` not exported from `../src/handler`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 `backend/src/handler.ts`:
 ```ts
@@ -746,17 +746,17 @@ const repo = new TodoRepository(docClient, process.env.TABLE_NAME ?? '');
 export const handler: APIGatewayProxyHandler = (event) => route(event, repo);
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd backend && pnpm exec jest`
 Expected: PASS (all suites: types, repository, router).
 
-- [ ] **Step 5: Verify the production bundle builds**
+- [x] **Step 5: Verify the production bundle builds**
 
 Run: `cd backend && pnpm run build && node -e "require('./dist/index.js').handler || process.exit(1)"`
 Expected: exits 0; `dist/index.js` exists and exports `handler`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add backend/src/handler.ts backend/test/router.test.ts
@@ -777,7 +777,7 @@ git commit -m "feat: add lambda handler and route dispatcher"
 **Interfaces:**
 - Produces (after manual apply): an S3 bucket for Terraform state and a DynamoDB table for state locking. Names are variables so the prod backend can reference them.
 
-- [ ] **Step 1: Write the bootstrap config**
+- [x] **Step 1: Write the bootstrap config**
 
 `infra/bootstrap/main.tf`:
 ```hcl
@@ -797,7 +797,7 @@ provider "aws" {
 
 variable "region" {
   type    = string
-  default = "us-east-1"
+  default = "ap-southeast-1"
 }
 
 variable "state_bucket_name" {
@@ -856,12 +856,12 @@ output "lock_table_name" {
 }
 ```
 
-- [ ] **Step 2: Format and validate**
+- [x] **Step 2: Format and validate**
 
 Run: `cd infra/bootstrap && terraform fmt && terraform init -backend=false && terraform validate`
 Expected: `Success! The configuration is valid.`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add infra/bootstrap/main.tf
@@ -879,7 +879,7 @@ git commit -m "feat(infra): add terraform state bootstrap module"
 - Consumes: `var.table_name`.
 - Produces: `output.table_name`, `output.table_arn`.
 
-- [ ] **Step 1: Write the module**
+- [x] **Step 1: Write the module**
 
 `infra/modules/data/variables.tf`:
 ```hcl
@@ -918,12 +918,12 @@ output "table_arn" {
 }
 ```
 
-- [ ] **Step 2: Format and validate**
+- [x] **Step 2: Format and validate**
 
 Run: `cd infra/modules/data && terraform fmt && terraform init -backend=false && terraform validate`
 Expected: valid.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add infra/modules/data
@@ -941,7 +941,7 @@ git commit -m "feat(infra): add dynamodb data module"
 - Consumes: `var.function_name`, `var.table_name`, `var.table_arn`, `var.lambda_zip_path` (path to built artifact).
 - Produces: `output.function_name`, `output.function_arn`, `output.invoke_arn` (for API Gateway integration).
 
-- [ ] **Step 1: Write the module**
+- [x] **Step 1: Write the module**
 
 `infra/modules/compute/variables.tf`:
 ```hcl
@@ -1031,12 +1031,12 @@ output "invoke_arn" {
 }
 ```
 
-- [ ] **Step 2: Format and validate**
+- [x] **Step 2: Format and validate**
 
 Run: `cd infra/modules/compute && terraform fmt && terraform init -backend=false && terraform validate`
 Expected: valid. (`filebase64sha256` is not evaluated at validate time.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add infra/modules/compute
@@ -1054,7 +1054,7 @@ git commit -m "feat(infra): add lambda compute module"
 - Consumes: `var.name_prefix`.
 - Produces: `output.user_pool_id`, `output.user_pool_arn` (for the API Gateway authorizer), `output.user_pool_client_id` (public SPA client, no secret).
 
-- [ ] **Step 1: Write the module**
+- [x] **Step 1: Write the module**
 
 `infra/modules/auth/variables.tf`:
 ```hcl
@@ -1106,12 +1106,12 @@ output "user_pool_client_id" {
 }
 ```
 
-- [ ] **Step 2: Format and validate**
+- [x] **Step 2: Format and validate**
 
 Run: `cd infra/modules/auth && terraform fmt && terraform init -backend=false && terraform validate`
 Expected: valid.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add infra/modules/auth
@@ -1127,10 +1127,10 @@ git commit -m "feat(infra): add cognito auth module"
 
 **Interfaces:**
 - Consumes: `var.name_prefix`, `var.region`, `var.user_pool_arn`, `var.lambda_invoke_arn`, `var.lambda_function_name`.
-- Produces: `output.api_id`, `output.stage_name` (= `api`), `output.invoke_domain` (host portion, e.g. `abc123.execute-api.us-east-1.amazonaws.com`) for the CloudFront origin.
+- Produces: `output.api_id`, `output.stage_name` (= `api`), `output.invoke_domain` (host portion, e.g. `abc123.execute-api.ap-southeast-1.amazonaws.com`) for the CloudFront origin.
 - Design: two resources — `/todos` and `/todos/{id}` — each with an `ANY` method (COGNITO_USER_POOLS authorizer) and an `AWS_PROXY` integration to the single Lambda. Stage name is **`api`** so `/api/todos` maps cleanly through CloudFront.
 
-- [ ] **Step 1: Write the module**
+- [x] **Step 1: Write the module**
 
 `infra/modules/api/variables.tf`:
 ```hcl
@@ -1262,12 +1262,12 @@ output "invoke_domain" {
 }
 ```
 
-- [ ] **Step 2: Format and validate**
+- [x] **Step 2: Format and validate**
 
 Run: `cd infra/modules/api && terraform fmt && terraform init -backend=false && terraform validate`
 Expected: valid.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add infra/modules/api
@@ -1286,7 +1286,7 @@ git commit -m "feat(infra): add api gateway module with cognito authorizer"
 - Produces: `output.bucket_name`, `output.distribution_id`, `output.distribution_domain` (the public URL host).
 - Design: private S3 bucket with Origin Access Control; CloudFront with two origins — S3 (default behavior, cached) and API Gateway (`/api/*` behavior, caching disabled, all viewer headers forwarded so `Authorization` reaches the API). SPA fallback: 403/404 → `/index.html`.
 
-- [ ] **Step 1: Write the module**
+- [x] **Step 1: Write the module**
 
 `infra/modules/frontend/variables.tf`:
 ```hcl
@@ -1434,12 +1434,12 @@ output "distribution_domain" {
 }
 ```
 
-- [ ] **Step 2: Format and validate**
+- [x] **Step 2: Format and validate**
 
 Run: `cd infra/modules/frontend && terraform fmt && terraform init -backend=false && terraform validate`
 Expected: valid.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add infra/modules/frontend
@@ -1458,7 +1458,7 @@ git commit -m "feat(infra): add s3 + cloudfront frontend module"
 - Produces: root outputs consumed by CI/CD and the frontend build — `distribution_id`, `distribution_domain`, `site_bucket_name`, `user_pool_id`, `user_pool_client_id`.
 - The Lambda artifact is built by `data.archive_file` in this root (zipping `backend/dist/index.js`) so plan/apply is self-contained once `backend` is built.
 
-- [ ] **Step 1: Write the backend + provider config**
+- [x] **Step 1: Write the backend + provider config**
 
 `infra/envs/prod/backend.tf`:
 ```hcl
@@ -1489,13 +1489,13 @@ provider "aws" {
 }
 ```
 
-- [ ] **Step 2: Write variables**
+- [x] **Step 2: Write variables**
 
 `infra/envs/prod/variables.tf`:
 ```hcl
 variable "region" {
   type    = string
-  default = "us-east-1"
+  default = "ap-southeast-1"
 }
 
 variable "name_prefix" {
@@ -1511,12 +1511,12 @@ variable "site_bucket_name" {
 
 `infra/envs/prod/terraform.tfvars.example`:
 ```hcl
-region           = "us-east-1"
+region           = "ap-southeast-1"
 name_prefix      = "todo-prod"
 site_bucket_name = "todo-prod-site-CHANGE-ME"
 ```
 
-- [ ] **Step 3: Write the module wiring**
+- [x] **Step 3: Write the module wiring**
 
 `infra/envs/prod/main.tf`:
 ```hcl
@@ -1581,7 +1581,7 @@ output "user_pool_client_id" {
 }
 ```
 
-- [ ] **Step 4: Format and validate (needs the backend build present)**
+- [x] **Step 4: Format and validate (needs the backend build present)**
 
 Run:
 ```bash
@@ -1589,7 +1589,7 @@ cd backend && pnpm run build && cd ../infra/envs/prod && terraform fmt && terraf
 ```
 Expected: `Success! The configuration is valid.`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add infra/envs/prod
@@ -1608,7 +1608,7 @@ git commit -m "feat(infra): wire prod environment with remote state"
 **Interfaces:**
 - Produces: a Next.js app that static-exports to `frontend/out`. `src/lib/amplify.ts` exports `configureAmplify()` reading `NEXT_PUBLIC_USER_POOL_ID` and `NEXT_PUBLIC_USER_POOL_CLIENT_ID`.
 
-- [ ] **Step 1: Create `frontend/package.json`**
+- [x] **Step 1: Create `frontend/package.json`**
 
 ```json
 {
@@ -1638,7 +1638,7 @@ git commit -m "feat(infra): wire prod environment with remote state"
 }
 ```
 
-- [ ] **Step 2: Create `frontend/next.config.js`**
+- [x] **Step 2: Create `frontend/next.config.js`**
 
 ```js
 /** @type {import('next').NextConfig} */
@@ -1649,7 +1649,7 @@ const nextConfig = {
 module.exports = nextConfig;
 ```
 
-- [ ] **Step 3: Create `frontend/tsconfig.json`**
+- [x] **Step 3: Create `frontend/tsconfig.json`**
 
 ```json
 {
@@ -1675,14 +1675,14 @@ module.exports = nextConfig;
 }
 ```
 
-- [ ] **Step 4: Create `frontend/.env.example`**
+- [x] **Step 4: Create `frontend/.env.example`**
 
 ```
-NEXT_PUBLIC_USER_POOL_ID=us-east-1_xxxxxxxxx
+NEXT_PUBLIC_USER_POOL_ID=ap-southeast-1_xxxxxxxxx
 NEXT_PUBLIC_USER_POOL_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-- [ ] **Step 5: Create `frontend/src/lib/amplify.ts`**
+- [x] **Step 5: Create `frontend/src/lib/amplify.ts`**
 
 ```ts
 import { Amplify } from 'aws-amplify';
@@ -1699,7 +1699,7 @@ export function configureAmplify(): void {
 }
 ```
 
-- [ ] **Step 6: Create `frontend/src/app/layout.tsx`**
+- [x] **Step 6: Create `frontend/src/app/layout.tsx`**
 
 ```tsx
 import type { ReactNode } from 'react';
@@ -1719,12 +1719,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 }
 ```
 
-- [ ] **Step 7: Install**
+- [x] **Step 7: Install**
 
 Run: `cd frontend && pnpm install`
 Expected: installs cleanly.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add frontend/package.json frontend/next.config.js frontend/tsconfig.json frontend/.env.example frontend/src/lib/amplify.ts frontend/src/app/layout.tsx frontend/pnpm-lock.yaml
@@ -1748,7 +1748,7 @@ git commit -m "feat(frontend): scaffold next.js static-export app with amplify c
   - `deleteTodo(id: string): Promise<void>`
 - All requests go to same-origin `/api/todos...` with the Cognito **ID token** in `Authorization`.
 
-- [ ] **Step 1: Create the client**
+- [x] **Step 1: Create the client**
 
 `frontend/src/lib/api.ts`:
 ```ts
@@ -1815,12 +1815,12 @@ export async function deleteTodo(id: string): Promise<void> {
 }
 ```
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 Run: `cd frontend && pnpm exec tsc --noEmit`
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add frontend/src/lib/api.ts
@@ -1838,7 +1838,7 @@ git commit -m "feat(frontend): add authenticated todo api client"
 - Consumes: `configureAmplify` from `@/lib/amplify`; the API client from `@/lib/api`; `Authenticator`, `useAuthenticator` from `@aws-amplify/ui-react`.
 - Produces: the app's single client-rendered page — sign-in/up via `<Authenticator>`, then list/create/toggle/edit/delete todos.
 
-- [ ] **Step 1: Create the page**
+- [x] **Step 1: Create the page**
 
 `frontend/src/app/page.tsx`:
 ```tsx
@@ -1936,12 +1936,12 @@ export default function Page() {
 }
 ```
 
-- [ ] **Step 2: Verify the static export builds**
+- [x] **Step 2: Verify the static export builds**
 
-Run: `cd frontend && NEXT_PUBLIC_USER_POOL_ID=us-east-1_x NEXT_PUBLIC_USER_POOL_CLIENT_ID=x pnpm run build`
+Run: `cd frontend && NEXT_PUBLIC_USER_POOL_ID=ap-southeast-1_x NEXT_PUBLIC_USER_POOL_CLIENT_ID=x pnpm run build`
 Expected: build succeeds and writes `frontend/out/index.html`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add frontend/src/app/page.tsx
@@ -1961,7 +1961,7 @@ git commit -m "feat(frontend): add auth-gated todo UI"
 - Consumes: `secrets.AWS_PLAN_ROLE_ARN` (read-only role for `terraform plan`); repo vars `AWS_REGION`, `STATE_BUCKET_NAME`, `SITE_BUCKET_NAME`.
 - Produces: PR gate — backend tests, frontend build, terraform fmt/validate/plan.
 
-- [ ] **Step 1: Create the workflow**
+- [x] **Step 1: Create the workflow**
 
 `.github/workflows/ci.yml`:
 ```yaml
@@ -2049,12 +2049,12 @@ jobs:
         run: terraform plan -var="region=${{ vars.AWS_REGION }}" -var="site_bucket_name=${{ vars.SITE_BUCKET_NAME }}"
 ```
 
-- [ ] **Step 2: Lint the YAML**
+- [x] **Step 2: Lint the YAML**
 
 Run: `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"`
 Expected: no output (valid YAML).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .github/workflows/ci.yml
@@ -2072,7 +2072,7 @@ git commit -m "ci: add pull-request pipeline"
 - Consumes: `secrets.AWS_DEPLOY_ROLE_ARN` (apply-capable role); repo vars `AWS_REGION`, `STATE_BUCKET_NAME`, `SITE_BUCKET_NAME`.
 - Produces: on push to `main` — apply infra, build+deploy frontend using live Cognito outputs, invalidate CloudFront.
 
-- [ ] **Step 1: Create the workflow**
+- [x] **Step 1: Create the workflow**
 
 `.github/workflows/deploy.yml`:
 ```yaml
@@ -2147,12 +2147,12 @@ jobs:
         run: aws cloudfront create-invalidation --distribution-id "${{ steps.tf.outputs.dist_id }}" --paths "/*"
 ```
 
-- [ ] **Step 2: Lint the YAML**
+- [x] **Step 2: Lint the YAML**
 
 Run: `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/deploy.yml'))"`
 Expected: no output.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .github/workflows/deploy.yml
@@ -2169,7 +2169,7 @@ git commit -m "ci: add main-branch deploy pipeline"
 **Interfaces:**
 - Produces: operator docs for the one-time manual steps CI can't do: bootstrap state, create the GitHub OIDC provider + roles, set repo vars/secrets, first deploy.
 
-- [ ] **Step 1: Write the README**
+- [x] **Step 1: Write the README**
 
 `README.md`:
 ````markdown
@@ -2215,7 +2215,7 @@ then two roles whose trust policy allows this repo:
 Set these in **Settings → Secrets and variables → Actions**:
 
 Variables:
-- `AWS_REGION` (e.g. `us-east-1`)
+- `AWS_REGION` (e.g. `ap-southeast-1`)
 - `STATE_BUCKET_NAME` (from bootstrap)
 - `SITE_BUCKET_NAME` (globally-unique bucket for the site)
 
@@ -2240,7 +2240,7 @@ distribution domain (`terraform output distribution_domain`).
   API calls to `/api/*` require the deployed backend or a proxy).
 ````
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add README.md
