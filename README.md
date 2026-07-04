@@ -1,5 +1,12 @@
 # Serverless Todo Web App
 
+[![CI](https://github.com/HuyNguyen260398/aws-serverless-webapp/actions/workflows/ci.yml/badge.svg)](https://github.com/HuyNguyen260398/aws-serverless-webapp/actions/workflows/ci.yml)
+[![Deploy](https://github.com/HuyNguyen260398/aws-serverless-webapp/actions/workflows/deploy.yml/badge.svg)](https://github.com/HuyNguyen260398/aws-serverless-webapp/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Terraform](https://img.shields.io/badge/terraform-%3E%3D1.6-623CE4?logo=terraform&logoColor=white)](https://developer.hashicorp.com/terraform)
+[![Node.js](https://img.shields.io/badge/node-20.x-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![AWS](https://img.shields.io/badge/AWS-Serverless-FF9900?logo=amazonaws&logoColor=white)](https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/web-application.html)
+
 A per-user todo application built entirely on AWS serverless services, following the
 [AWS Well-Architected Serverless Applications Lens — *Web application*](https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/web-application.html)
 reference architecture, with a Next.js frontend, Terraform infrastructure-as-code, and
@@ -11,6 +18,30 @@ GitHub Actions CI/CD.
 > every account ID, region, and resource name is supplied by you via Terraform
 > variables and GitHub Actions repo variables/secrets. Follow
 > [Setup](#setup) below end to end.
+
+> [!WARNING]
+> Following [Setup](#setup) creates real, billable AWS resources (Lambda, DynamoDB,
+> API Gateway, CloudFront, S3, Cognito). Usage-based pricing keeps a personal todo
+> app cheap, but nothing here is billed as $0. See [Tear down](#6-tear-down-avoid-ongoing-charges)
+> to remove everything when you're done.
+
+## Contents
+
+- [Why serverless](#why-serverless)
+- [Architecture](#architecture)
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Project structure](#project-structure)
+- [Setup](#setup)
+  - [1. Prerequisites](#1-prerequisites)
+  - [2. Bootstrap Terraform remote state](#2-bootstrap-terraform-remote-state)
+  - [3. Create the GitHub OIDC provider and IAM roles](#3-create-the-github-oidc-provider-and-iam-roles)
+  - [4. Configure the GitHub repository](#4-configure-the-github-repository)
+  - [5. First deploy](#5-first-deploy)
+  - [6. Tear down (avoid ongoing charges)](#6-tear-down-avoid-ongoing-charges)
+  - [How CI/CD works](#how-cicd-works)
+  - [Local development](#local-development)
+- [Documentation](#documentation)
 
 ## Why serverless
 
@@ -322,6 +353,49 @@ terraform output distribution_domain
 
 Open `https://<that-domain>` and sign up with any email — Cognito emails a
 verification code — to start using the app.
+
+### 6. Tear down (avoid ongoing charges)
+
+Neither S3 bucket this stack creates has `force_destroy` enabled, so `terraform
+destroy` fails on a non-empty bucket — empty it first.
+
+**Application stack** (Cognito, DynamoDB, Lambda, API Gateway, CloudFront, site bucket):
+
+```bash
+aws s3 rm "s3://<SITE_BUCKET_NAME>" --recursive
+
+cd infra/envs/prod
+terraform init -backend-config="bucket=<STATE_BUCKET_NAME>" \
+                -backend-config="region=<AWS_REGION>" \
+                -backend-config="dynamodb_table=<LOCK_TABLE_NAME>"
+terraform destroy \
+  -var="region=<AWS_REGION>" \
+  -var="site_bucket_name=<SITE_BUCKET_NAME>"
+```
+
+**Bootstrap state backend** (only once you're done deploying entirely — this
+deletes the Terraform state bucket and lock table themselves):
+
+```bash
+# The state bucket has versioning enabled: delete all object versions and
+# delete markers, not just the current version, or the bucket won't empty.
+aws s3api delete-objects --bucket <STATE_BUCKET_NAME> --delete "$(
+  aws s3api list-object-versions --bucket <STATE_BUCKET_NAME> \
+    --output json --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}'
+)"
+aws s3api delete-objects --bucket <STATE_BUCKET_NAME> --delete "$(
+  aws s3api list-object-versions --bucket <STATE_BUCKET_NAME> \
+    --output json --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}'
+)"
+
+cd infra/bootstrap
+terraform destroy \
+  -var="region=<AWS_REGION>" \
+  -var="state_bucket_name=<STATE_BUCKET_NAME>"
+```
+
+Finally, remove the GitHub OIDC provider and the two IAM roles from step 3 if
+you don't plan to redeploy.
 
 ### How CI/CD works
 
