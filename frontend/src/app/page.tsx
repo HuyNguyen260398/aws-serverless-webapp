@@ -1,8 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
+import { useEffect, useState, type ReactNode } from 'react';
+import {
+  Authenticator,
+  useAuthenticator,
+  ThemeProvider as AmplifyThemeProvider,
+} from '@aws-amplify/ui-react';
 import { configureAmplify } from '@/lib/amplify';
+import { amplifyTheme } from '@/lib/amplifyTheme';
+import { ColorModeProvider, useColorMode } from '@/lib/theme';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   listTodos,
   createTodo,
@@ -12,6 +19,15 @@ import {
 } from '@/lib/api';
 
 configureAmplify();
+
+function AmplifyThemed({ children }: { children: ReactNode }) {
+  const { colorMode } = useColorMode();
+  return (
+    <AmplifyThemeProvider theme={amplifyTheme} colorMode={colorMode}>
+      {children}
+    </AmplifyThemeProvider>
+  );
+}
 
 function TodoApp() {
   const { signOut, user } = useAuthenticator((c) => [c.user]);
@@ -50,32 +66,54 @@ function TodoApp() {
   }
 
   return (
-    <main style={{ maxWidth: 560, margin: '2rem auto', fontFamily: 'sans-serif' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <h1>Todos</h1>
-        <button onClick={signOut}>Sign out ({user?.signInDetails?.loginId})</button>
+    <main className="mx-auto min-h-screen max-w-lg px-4 py-8">
+      <header className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-50">Todos</h1>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            onClick={signOut}
+            className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            Sign out ({user?.signInDetails?.loginId})
+          </button>
+        </div>
       </header>
 
-      {error && <p style={{ color: 'crimson' }}>{error}</p>}
+      {error && <p className="text-red-600 dark:text-red-400">{error}</p>}
 
-      <form onSubmit={onAdd} style={{ display: 'flex', gap: 8 }}>
+      <form onSubmit={onAdd} className="flex gap-2">
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="What needs doing?"
-          style={{ flex: 1 }}
+          className="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
         />
-        <button type="submit">Add</button>
+        <button
+          type="submit"
+          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        >
+          Add
+        </button>
       </form>
 
-      <ul style={{ listStyle: 'none', padding: 0 }}>
+      <ul className="mt-4">
         {todos.map((t) => (
-          <li key={t.todoId} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <li
+            key={t.todoId}
+            className="flex items-center gap-3 border-b border-gray-100 py-3 dark:border-gray-800"
+          >
             <input type="checkbox" checked={t.completed} onChange={() => onToggle(t)} />
-            <span style={{ flex: 1, textDecoration: t.completed ? 'line-through' : 'none' }}>
+            <span
+              className={`flex-1 text-gray-900 dark:text-gray-100 ${
+                t.completed ? 'text-gray-400 line-through dark:text-gray-500' : ''
+              }`}
+            >
               {t.title}
             </span>
-            <button onClick={() => onDelete(t)}>Delete</button>
+            <button onClick={() => onDelete(t)} className="text-gray-400 hover:text-red-600">
+              Delete
+            </button>
           </li>
         ))}
       </ul>
@@ -85,8 +123,12 @@ function TodoApp() {
 
 export default function Page() {
   return (
-    <Authenticator>
-      <TodoApp />
-    </Authenticator>
+    <ColorModeProvider>
+      <AmplifyThemed>
+        <Authenticator>
+          <TodoApp />
+        </Authenticator>
+      </AmplifyThemed>
+    </ColorModeProvider>
   );
 }
