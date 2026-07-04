@@ -4,12 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-This repo is in the **design phase**. No application code exists yet — the only
-content is the approved design spec at
-`docs/superpowers/specs/2026-07-03-serverless-todo-webapp-design.md`, which is the
-**source of truth** for architecture and scope. Read it before implementing. The
-directory layout, commands, and modules described below are the *intended* structure
-from that spec; create them as you build, and update this file when they become real.
+The app is implemented: `frontend/`, `backend/`, and `infra/` all contain working
+code, and `.github/workflows/` runs CI and deploys on push to `main`. For
+architecture, request flow, and the deploy pipeline, see `docs/architecture.md`
+(includes Mermaid sequence and workflow diagrams) — treat it as the source of
+truth alongside the code itself. `docs/superpowers/` is a local, gitignored
+planning scratch space (design specs and implementation plans from building this
+repo) — it is not tracked in git and won't be present in a fresh clone.
 
 ## What this is
 

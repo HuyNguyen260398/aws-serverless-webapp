@@ -11,12 +11,13 @@ terraform {
     }
   }
 
-  # Remote state. `bucket` and `region` are supplied at init time via
-  # -backend-config (see README / CI). The lock table is created by infra/bootstrap.
+  # Remote state. `bucket`, `region`, and `dynamodb_table` are all supplied at
+  # init time via -backend-config (see README / CI) — the bucket and lock
+  # table are created once by infra/bootstrap, and their names are not fixed
+  # here so a fork can pick its own.
   backend "s3" {
-    key            = "prod/terraform.tfstate"
-    dynamodb_table = "todo-tf-locks"
-    encrypt        = true
+    key     = "prod/terraform.tfstate"
+    encrypt = true
   }
 }
 

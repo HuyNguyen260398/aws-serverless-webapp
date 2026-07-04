@@ -1,6 +1,6 @@
 variable "region" {
-  type    = string
-  default = "ap-southeast-1"
+  type        = string
+  description = "AWS region to deploy all application resources into."
 }
 
 variable "name_prefix" {
