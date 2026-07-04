@@ -14,3 +14,4 @@ crash.log
 .env.local
 coverage/
 docs/deployment-info.md
+docs/superpowers/
