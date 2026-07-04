@@ -21,6 +21,9 @@ GitHub Actions CI/CD.
 ## Architecture
 
 The app maps one-to-one to the six components of the AWS reference architecture.
+
+> **Reference:** [AWS Well-Architected Serverless Applications Lens — "Web application"](https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/web-application.html)
+
 See [`docs/architecture.md`](docs/architecture.md) for a full breakdown plus
 Mermaid sequence and CI/CD workflow diagrams.
 

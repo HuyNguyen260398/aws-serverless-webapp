@@ -2,9 +2,10 @@
 
 This app follows the AWS Well-Architected Serverless Applications Lens
 ["Web application" reference architecture](https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/web-application.html)
-exactly. See `docs/superpowers/specs/2026-07-03-serverless-todo-webapp-design.md`
-for the full design rationale; this doc focuses on diagrams of the runtime
-request flow and the deploy workflow, as built in `infra/` and `.github/workflows/`.
+exactly. This doc focuses on diagrams of the runtime request flow and the deploy
+workflow, as built in `infra/` and `.github/workflows/`.
+
+> **Reference:** https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/web-application.html
 
 ## AWS services in use
 
