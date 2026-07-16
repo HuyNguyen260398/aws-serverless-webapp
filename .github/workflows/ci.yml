@@ -55,28 +55,52 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
+      - name: Detect infra/backend changes
+        uses: dorny/paths-filter@v3
+        id: changes
         with:
-          version: 9
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-      - name: Build lambda artifact (needed for archive_file)
-        run: cd backend && pnpm install --frozen-lockfile && pnpm run build
+          filters: |
+            plan:
+              - 'infra/**'
+              - 'backend/**'
       - uses: hashicorp/setup-terraform@v4
       - name: Format check
         run: terraform fmt -check -recursive infra
+      # Init WITHOUT the S3 backend so fmt/validate run on every PR (including
+      # docs- or frontend-only ones) without needing the remote state bucket or
+      # AWS credentials — those steps must not depend on deployed infrastructure.
+      - name: Init (config only, no backend)
+        working-directory: infra/envs/prod
+        run: terraform init -backend=false
+      - name: Validate
+        working-directory: infra/envs/prod
+        run: terraform validate
+
+      # The remote-state init + plan reach AWS, so run them only when infra or
+      # backend code actually changes. A docs/frontend PR can't affect the plan,
+      # and running it there just fails on an unreachable backend.
+      - uses: pnpm/action-setup@v6
+        if: steps.changes.outputs.plan == 'true'
+        with:
+          version: 9
+      - uses: actions/setup-node@v6
+        if: steps.changes.outputs.plan == 'true'
+        with:
+          node-version-file: .nvmrc
+      - name: Build lambda artifact (needed for archive_file)
+        if: steps.changes.outputs.plan == 'true'
+        run: cd backend && pnpm install --frozen-lockfile && pnpm run build
       - name: Configure AWS credentials (OIDC)
+        if: steps.changes.outputs.plan == 'true'
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_PLAN_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
-      - name: Init
+      - name: Init (remote state)
+        if: steps.changes.outputs.plan == 'true'
         working-directory: infra/envs/prod
-        run: terraform init -backend-config="bucket=${{ vars.STATE_BUCKET_NAME }}" -backend-config="region=${{ vars.AWS_REGION }}" -backend-config="dynamodb_table=${{ vars.LOCK_TABLE_NAME }}"
-      - name: Validate
-        working-directory: infra/envs/prod
-        run: terraform validate
+        run: terraform init -reconfigure -backend-config="bucket=${{ vars.STATE_BUCKET_NAME }}" -backend-config="region=${{ vars.AWS_REGION }}" -backend-config="dynamodb_table=${{ vars.LOCK_TABLE_NAME }}"
       - name: Plan
+        if: steps.changes.outputs.plan == 'true'
         working-directory: infra/envs/prod
         run: terraform plan -var="region=${{ vars.AWS_REGION }}" -var="site_bucket_name=${{ vars.SITE_BUCKET_NAME }}"
