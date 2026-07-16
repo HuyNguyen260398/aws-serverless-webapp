@@ -61,9 +61,9 @@ The app maps one-to-one to the six components of the AWS reference architecture.
 See [`docs/architecture.md`](docs/architecture.md) for a full breakdown plus
 Mermaid sequence and CI/CD workflow diagrams.
 
-![AWS Well-Architected reference architecture for a web application: CloudFront in front of an S3-hosted static site and an API Gateway REST API secured by a Cognito authorizer, invoking a Lambda function backed by DynamoDB](https://docs.aws.amazon.com/images/wellarchitected/latest/serverless-applications-lens/images/reference-architecture-for-web-application.png)
+![AWS serverless web app architecture: a browser loads the SPA over HTTPS through CloudFront (the single entry point), whose default behavior serves static assets from a private S3 bucket via OAC and whose /api/* behavior forwards to an API Gateway REST API; API Gateway validates the Cognito-issued JWT (Cognito authorizer) and invokes a single Lambda CRUD function that queries DynamoDB by userId and writes to CloudWatch Logs](docs/aws-architecture.png)
 
-*Source: [AWS Well-Architected Serverless Applications Lens — Web application](https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/web-application.html)*
+*Diagram generated with [draw.io](https://www.drawio.com/) using official AWS icons; editable source: [`docs/aws-architecture.drawio`](docs/aws-architecture.drawio). Follows the [AWS Well-Architected Serverless Applications Lens — Web application](https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/web-application.html) reference architecture.*
 
 | Component | Service | Role |
 |-----------|---------|------|
